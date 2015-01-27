@@ -175,15 +175,20 @@ Installing VMware Workstation 11 on Machine A (Windows 7).
 ### Host-only
 >     Machine B --> ssh --> Machine A --> port forwarded --> VM Machine D3  
 >          ^                                                       ^  
->     tun2 |    SSH Tunnel Interface, point to point connection    | tun1  
+>          |                 SSH Tunnel Interface                  |  
+>     tun2 | 10.0.0.2      point to point connection      10.0.0.1 | tun1  
 >          +-------------------------------------------------------+  
-> 
+>
+>                                                      rtt avg  
 >     D3 -> D3         ping -c 50 192.168.19.2         0.074 ms  
 >     D3 -> F          ping -c 50 192.168.19.1         0.414 ms  
 >     D3 -> A          ping -c 50 192.168.1.4          3.636 ms  
 >     D3 -> G          ping -c 50 192.168.1.1          2.514 ms  
 >     D3 -> B          ping -c 50 192.168.1.2          2.488 ms  
 >     D3 -> C          ping -c 50 192.168.1.3          2.522 ms  
+>     B  -> D3         ping -c 50 192.168.19.2         1.938 ms  
+>     B  -> F          ping -c 50 192.168.19.1         2.179 ms  
+>     B  -> D3         ping -c 50 10.0.0.1             1.930 ms  
 
 ### Bridge
 >     D1 -> D1         ping -c 50 192.168.1.5          0.074 ms  
