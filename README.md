@@ -1,5 +1,5 @@
 # vpn-over-ssh
-Poor mans VPN over SSH, scripts which can help to setup VPN based on **OpenSSH version 4.3+**, creates a ssh tunnel to **connect two networks, require root, works with Linux**.
+Poor mans VPN over SSH, script which can help to setup VPN based on **OpenSSH version 4.3+**, creates a ssh tunnel to **connect two networks, require root, works with Linux**.
 
 # Prerequisites
 
@@ -103,12 +103,12 @@ Edit **svpn.sh**, just run it on client.
 
 Edit **svpn.sh**
 
->     35:    ip route replace default via ${SERVER_GATEWAY}  
->     36:    # ip route del ${CLIENT_NET} via ${SERVER_TUN_IP}  
+>     36:    ip route replace default via ${SERVER_GATEWAY}  
+>     37:    # ip route del ${CLIENT_NET} via ${SERVER_TUN_IP}  
 >     47:    # ip route add ${CLIENT_NET} via ${SERVER_TUN_IP}  
 >     48:    ip route replace default via ${SERVER_TUN_IP}  
->     79:    ip route replace default via ${SERVER_GATEWAY}  
->     80:    # ip route del ${CLIENT_NET} via ${SERVER_TUN_IP}
+>     77:    ip route replace default via ${SERVER_GATEWAY}  
+>     78:    # ip route del ${CLIENT_NET} via ${SERVER_TUN_IP}
 
 ## Network topology C
 >                    Has internet     Has internet  
@@ -135,11 +135,11 @@ Edit **svpn.sh**
 
 Edit **svpn.sh**
 
->     64:    # ip route add ${SERVER_NET} via ${CLIENT_TUN_IP}  
->     65:    ip route replace default via ${CLIENT_TUN_IP}  
->     66:    # iptables -t nat -A POSTROUTING -s ${SERVER_TUN_IP}/32 -o ${CLIENT_ETHERNET} -j MASQUERADE  
->     67:    # iptables -A FORWARD -p tcp --syn -s ${SERVER_TUN_IP}/32 -j TCPMSS --set-mss 1356  
->     92:    ip route replace default via ${CLIENT_GATEWAY}  
->     93:    # ip route del ${SERVER_NET} via ${CLIENT_TUN_IP}  
->     95:    # iptables -t nat -D POSTROUTING -s ${SERVER_TUN_IP}/32 -o ${CLIENT_ETHERNET} -j MASQUERADE  
->     96:    # iptables -D FORWARD -p tcp --syn -s ${SERVER_TUN_IP}/32 -j TCPMSS --set-mss 1356
+>     62:    # ip route add ${SERVER_NET} via ${CLIENT_TUN_IP}  
+>     63:    ip route replace default via ${CLIENT_TUN_IP}  
+>     64:    # iptables -t nat -A POSTROUTING -s ${SERVER_TUN_IP}/32 -o ${CLIENT_ETHERNET} -j MASQUERADE  
+>     65:    # iptables -A FORWARD -p tcp --syn -s ${SERVER_TUN_IP}/32 -j TCPMSS --set-mss 1356  
+>     90:    ip route replace default via ${CLIENT_GATEWAY}  
+>     91:    # ip route del ${SERVER_NET} via ${CLIENT_TUN_IP}  
+>     93:    # iptables -t nat -D POSTROUTING -s ${SERVER_TUN_IP}/32 -o ${CLIENT_ETHERNET} -j MASQUERADE  
+>     94:    # iptables -D FORWARD -p tcp --syn -s ${SERVER_TUN_IP}/32 -j TCPMSS --set-mss 1356
