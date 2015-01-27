@@ -143,3 +143,60 @@ Edit **svpn.sh**
 >     91:    # ip route del ${SERVER_NET} via ${CLIENT_TUN_IP}  
 >     93:    # iptables -t nat -D POSTROUTING -s ${SERVER_TUN_IP}/32 -o ${CLIENT_ETHERNET} -j MASQUERADE  
 >     94:    # iptables -D FORWARD -p tcp --syn -s ${SERVER_TUN_IP}/32 -j TCPMSS --set-mss 1356
+
+# Performance (ping test)
+## Topology B
+Installing VMware Workstation 11 on Machine A (Windows 7).
+>                              +-~-~-~-+-~-~-~-+  
+>                              | Gateway G     |  
+>                              | 192.168.1.1   |  
+>                              +-~-~-~-+-~-~-~-+  
+>                                      |  
+>             +------------------------+------------------------+  
+>             |                        |                        |  
+>     +-------+-------+        +-------+-------+        +-------+-------+  
+>     | Machine A     |        | Machine B     |        | Machine C     |  
+>     | 192.168.1.4   |        | 192.168.1.2   |        | 192.168.1.3   |  
+>     +-------+-------+        +---------------+        +---------------+  
+>             |  
+>             +------------------------+------------------------+  
+>             |                        |                        |  
+>             |                +-~-~-~-+-~-~-~-+        +-~-~-~-+-~-~-~-+  
+>             |                |      NAT      |        |   Host-only   |  
+>             |                |   Gateway E   |        |   Gateway F   |  
+>             |                |  192.168.72.1 |        |  192.168.19.1 |  
+>             |                +-~-~-~-+-~-~-~-+        +-~-~-~-+-~-~-~-+  
+>             | Bridge                 |                        |  
+>     +-------+-------+        +-------+-------+        +-------+-------+  
+>     | VM Machine D1 |        | VM Machine D2 |        | VM Machine D3 |  
+>     | 192.168.1.5   |        | 192.168.72.2  |        | 192.168.19.2  |  
+>     +---------------+        +---------------+        +---------------+  
+
+### Host-only
+>     Machine B --> ssh --> Machine A --> port forwarded --> VM Machine D3  
+>          ^                                                       ^  
+>     tun2 |    SSH Tunnel Interface, point to point connection    | tun1  
+>          +-------------------------------------------------------+  
+> 
+>     D3 -> D3         ping -c 50 192.168.19.2         0.074 ms  
+>     D3 -> F          ping -c 50 192.168.19.1         0.414 ms  
+>     D3 -> A          ping -c 50 192.168.1.4          3.636 ms  
+>     D3 -> G          ping -c 50 192.168.1.1          2.514 ms  
+>     D3 -> B          ping -c 50 192.168.1.2          2.488 ms  
+>     D3 -> C          ping -c 50 192.168.1.3          2.522 ms  
+
+### Bridge
+>     D1 -> D1         ping -c 50 192.168.1.5          0.074 ms  
+>     D1 -> A          ping -c 50 192.168.1.4          0.452 ms  
+>     D1 -> G          ping -c 50 192.168.1.1          1.421 ms  
+>     D1 -> B          ping -c 50 192.168.1.2          1.361 ms  
+>     D1 -> C          ping -c 50 192.168.1.3          1.429 ms  
+
+### NAT
+>     D2 -> D2         ping -c 50 192.168.72.2         0.074 ms  
+>     D2 -> E          ping -c 50 192.168.72.1         0.411 ms  
+>     D2 -> F          ping -c 50 192.168.19.1         1.127 ms  
+>     D2 -> A          ping -c 50 192.168.1.4          1.155 ms  
+>     D2 -> G          ping -c 50 192.168.1.1          1.996 ms  
+>     D2 -> B          ping -c 50 192.168.1.2          1.997 ms  
+>     D2 -> C          ping -c 50 192.168.1.3          1.931 ms  
