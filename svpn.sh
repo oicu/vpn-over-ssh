@@ -25,37 +25,35 @@ SERVER_GATEWAY="192.168.1.1"
 start()
 {
 ssh -NTCf -o ServerAliveInterval=30 \
-        -o ServerAliveCountMax=6 \
-        -o ExitOnForwardFailure=yes \
-        -o Tunnel=point-to-point \
-        -w "${CLIENT_TUNNEL#tun}:${SERVER_TUNNEL#tun}" \
-        root@${SERVER_SSH_IP} -p ${SERVER_SSH_PORT}
+    -o ServerAliveCountMax=6 \
+    -o ExitOnForwardFailure=yes \
+    -o Tunnel=point-to-point \
+    -w "${CLIENT_TUNNEL#tun}:${SERVER_TUNNEL#tun}" \
+    root@${SERVER_SSH_IP} -p ${SERVER_SSH_PORT}
+if [ $? -ne 0 ]; then exit 1; fi
 echo "ssh tunnel is working."
 ssh -T root@${SERVER_SSH_IP} -p ${SERVER_SSH_PORT} > /dev/null 2>&1 << eeooff
-            # ip route replace default via ${SERVER_GATEWAY}
-            ip route del ${CLIENT_NET} via ${SERVER_TUN_IP}
-            ip link set ${SERVER_TUNNEL} down
-            iptables -t nat -D POSTROUTING -s ${CLIENT_TUN_IP}/32 -o ${SERVER_ETHERNET} -j MASQUERADE
-            iptables -D FORWARD -p tcp --syn -s ${CLIENT_TUN_IP}/32 -j TCPMSS --set-mss 1356
-            iptables -t nat -D POSTROUTING -s ${SERVER_NET} -o ${SERVER_TUNNEL} -j MASQUERADE
-
-            ifconfig ${SERVER_TUNNEL} > /dev/null 2>&1
-            if [ $? -eq 0 ]; then
-                echo 1 > /proc/sys/net/ipv4/ip_forward
-                ip link set ${SERVER_TUNNEL} up
-                ip addr add ${SERVER_TUN_IP}/32 peer ${CLIENT_TUN_IP} dev ${SERVER_TUNNEL}
-                ip route add ${CLIENT_NET} via ${SERVER_TUN_IP}
-                # ip route replace default via ${SERVER_TUN_IP}
-                iptables -t nat -A POSTROUTING -s ${CLIENT_TUN_IP}/32 -o ${SERVER_ETHERNET} -j MASQUERADE
-                iptables -A FORWARD -p tcp --syn -s ${CLIENT_TUN_IP}/32 -j TCPMSS --set-mss 1356
-                iptables -t nat -A POSTROUTING -s ${SERVER_NET} -o ${SERVER_TUNNEL} -j MASQUERADE
-            else
-                exit 1
-            fi
-            exit
+    # ip route replace default via ${SERVER_GATEWAY}
+    ip route del ${CLIENT_NET} via ${SERVER_TUN_IP}
+    ip link set ${SERVER_TUNNEL} down
+    iptables -t nat -D POSTROUTING -s ${CLIENT_TUN_IP}/32 -o ${SERVER_ETHERNET} -j MASQUERADE
+    iptables -D FORWARD -p tcp --syn -s ${CLIENT_TUN_IP}/32 -j TCPMSS --set-mss 1356
+    iptables -t nat -D POSTROUTING -s ${SERVER_NET} -o ${SERVER_TUNNEL} -j MASQUERADE
+    ifconfig ${SERVER_TUNNEL} > /dev/null 2>&1
+    if [ $? -eq 0 ]; then
+        echo 1 > /proc/sys/net/ipv4/ip_forward
+        ip link set ${SERVER_TUNNEL} up
+        ip addr add ${SERVER_TUN_IP}/32 peer ${CLIENT_TUN_IP} dev ${SERVER_TUNNEL}
+        ip route add ${CLIENT_NET} via ${SERVER_TUN_IP}
+        # ip route replace default via ${SERVER_TUN_IP}
+        iptables -t nat -A POSTROUTING -s ${CLIENT_TUN_IP}/32 -o ${SERVER_ETHERNET} -j MASQUERADE
+        iptables -A FORWARD -p tcp --syn -s ${CLIENT_TUN_IP}/32 -j TCPMSS --set-mss 1356
+        iptables -t nat -A POSTROUTING -s ${SERVER_NET} -o ${SERVER_TUNNEL} -j MASQUERADE
+    fi
+    exit
 eeooff
+if [ $? -ne 0 ]; then exit 1; fi
 echo "remote start."
-sleep 3
 ifconfig ${CLIENT_TUNNEL} > /dev/null 2>&1
 if [ $? -eq 0 ]; then
     echo 1 > /proc/sys/net/ipv4/ip_forward
@@ -67,10 +65,10 @@ if [ $? -eq 0 ]; then
     iptables -A FORWARD -p tcp --syn -s ${SERVER_TUN_IP}/32 -j TCPMSS --set-mss 1356
     iptables -t nat -A POSTROUTING -s ${CLIENT_NET} -o ${CLIENT_TUNNEL} -j MASQUERADE
     ping ${SERVER_TUN_IP} -i 60 > /dev/null 2>&1 &
+    echo "local start."
 else
     exit 1
 fi
-echo "local start."
 }
 
 stop-srv()
@@ -84,7 +82,7 @@ ssh -T root@${SERVER_SSH_IP} -p ${SERVER_SSH_PORT} > /dev/null 2>&1 << eeooff
     iptables -t nat -D POSTROUTING -s ${SERVER_NET} -o ${SERVER_TUNNEL} -j MASQUERADE
     exit
 eeooff
-echo "remote stop."
+if [ $? -eq 0 ]; then echo "remote stop."; fi
 }
 
 stop()
